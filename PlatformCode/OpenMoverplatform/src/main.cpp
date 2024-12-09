@@ -37,8 +37,18 @@ void loop(){
     else if(messageIntention == 1){
       //send the currently stored coordinates via json
       serializeJson(coordinates, Serial);
-      Serial.println("Should have sent the coordinates");
     }
+
+    else if(messageIntention == 2){
+      //recieve array of waypoints
+      JsonArray waypoints = doc["waypoints"];
+      int Waypoints[waypoints.size()];
+      for(int i = 0; i < waypoints.size(); i++){
+        Waypoints[i] = waypoints[i];
+      }
+      waypointNavigation(Waypoints);
+    }
+
     else{
       Serial.println("Invalid intent");
       emergencyStop();
@@ -51,4 +61,8 @@ void emergencyStop(){
   analogWrite(motor1Pin, pwmCenter);
   analogWrite(motor2Pin, pwmCenter);
   while(true){};
+}
+
+void waypointNavigation(int Waypoints[]){
+  //TODO
 }
