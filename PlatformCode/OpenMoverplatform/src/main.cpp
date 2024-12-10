@@ -1,11 +1,8 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <config.h>
+#include <emerg.h>
 
-#define motor1Pin 10
-#define motor2Pin 11  
-#define pwmCenter 128
-#define pwmMax 200
-#define pwmMin 50
 
 void emergencyStop();
 
@@ -40,13 +37,7 @@ void loop(){
     }
 
     else if(messageIntention == 2){
-      //recieve array of waypoints
-      JsonArray waypoints = doc["waypoints"];
-      int Waypoints[waypoints.size()];
-      for(int i = 0; i < waypoints.size(); i++){
-        Waypoints[i] = waypoints[i];
-      }
-      waypointNavigation(Waypoints);
+      
     }
 
     else{
@@ -55,14 +46,3 @@ void loop(){
     }
     }
   }
-
-void emergencyStop(){
-  Serial.println("Emergency Stop");
-  analogWrite(motor1Pin, pwmCenter);
-  analogWrite(motor2Pin, pwmCenter);
-  while(true){};
-}
-
-void waypointNavigation(int Waypoints[]){
-  //TODO
-}
