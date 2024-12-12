@@ -3,10 +3,10 @@
 
 
 void wpManagerExec(void * pvParameters){
-    int* coordinateTable = (int*)pvParameters;
+    int* coordinateTableWP = (int*)pvParameters;
     Serial.println("wpManagerExec");
-    Serial.println(*coordinateTable);
-    Serial.println(*(coordinateTable+1));
+    Serial.println(*coordinateTableWP);
+    Serial.println(*(coordinateTableWP+1));
     vTaskDelete(NULL);
     return;
 }
