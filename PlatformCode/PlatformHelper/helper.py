@@ -11,7 +11,13 @@ ser = serial.Serial(
 )
 
 if ser.is_open:
-    print("1:")
-    print("2:")
-    print("3:")
-    input("Choice :")
+    print("0: upload cords")
+    print("1: download cords")
+    print("2: start wp mission")
+    choice = int(input("Choice :"))
+
+    if choice == 0:
+
+    elif choice == 1:
+
+    elif choice == 2:
