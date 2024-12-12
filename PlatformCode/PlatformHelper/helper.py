@@ -10,14 +10,16 @@ ser = serial.Serial(
     timeout=1           # Set a timeout value
 )
 
-if ser.is_open:
-    print("0: upload cords")
-    print("1: download cords")
-    print("2: start wp mission")
-    choice = int(input("Choice :"))
 
-    if choice == 0:
+while True:
+    if ser.is_open:
+        print("0: upload cords")
+        print("1: download cords")
+        print("2: start wp mission")
+        choice = int(input("Choice :"))
 
-    elif choice == 1:
+        if choice == 0:
 
-    elif choice == 2:
+        elif choice == 1:
+
+        elif choice == 2:
