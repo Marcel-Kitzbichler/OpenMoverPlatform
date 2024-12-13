@@ -1,7 +1,7 @@
 import serial
+import intent0
 import intent1
 import intent2
-import intent3
 
 # Configure the serial port
 ser = serial.Serial(
@@ -22,10 +22,10 @@ while True:
         choice = int(input("Choice :"))
 
         if choice == 0:
-            intent1.process(ser)
+            intent0.process(ser)
 
         elif choice == 1:
-            intent2.process(ser)
+            intent1.process(ser)
 
         elif choice == 2:
-            intent3.process(ser)
+            intent2.process(ser)
