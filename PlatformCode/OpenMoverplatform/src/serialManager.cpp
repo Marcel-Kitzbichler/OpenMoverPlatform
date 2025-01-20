@@ -8,7 +8,7 @@
 bool motorHandled = false;
 
 void serialManager(void * pvParameters){
-    int coordinateTable[99][2];
+    int64_t coordinateTable[100];
     TaskHandle_t* motorControlHandle = NULL;
     while (true){
         if(Serial.available()){
@@ -29,7 +29,9 @@ void serialManager(void * pvParameters){
             }
 
             else if(messageIntention == 1){
-                //send the currently stored coordinates via json
+                StaticJsonDocument<200> doc;
+                copyArray(coordinateTable, doc["coordinates"]);
+                serializeJson(doc, Serial);
             }
 
             else if(messageIntention == 2){
