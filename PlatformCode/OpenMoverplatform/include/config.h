@@ -1,5 +1,7 @@
 #define motor1Pin 13
 #define motor2Pin 12  
-#define pwmCenter 128
-#define pwmMax 200
-#define pwmMin 50
+#define pwmCenter 1460
+#define pwmMax 1060
+#define pwmMin 1860
+#define pwmFreq 50
+#define pwmResolution 16
