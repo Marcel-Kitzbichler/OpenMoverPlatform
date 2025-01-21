@@ -2,6 +2,7 @@ import serial
 import intent0
 import intent1
 import intent2
+import os
 
 # Configure the serial port
 ser = serial.Serial(
@@ -16,6 +17,7 @@ ser = serial.Serial(
 
 while True:
     if ser.is_open:
+        os.system('cls')
         print("0: upload cords")
         print("1: download cords")
         print("2: start wp mission")
