@@ -12,7 +12,7 @@ void serialManager(void * pvParameters){
     TaskHandle_t* motorControlHandle = NULL;
     while (true){
         if(Serial.available()){
-            StaticJsonDocument<200> doc;
+            JsonDocument doc;
             DeserializationError error = deserializeJson(doc, Serial);
             if(error){
                 Serial.print("deserializeJson() failed: ");
@@ -23,13 +23,11 @@ void serialManager(void * pvParameters){
             int messageIntention = doc["intent"];
 
             if(messageIntention == 0){ 
-                //recieve array of coordinates
                 copyArray(doc["coordinates"], coordinateTable);
-                Serial.println("recieved coordinates");
             }
 
             else if(messageIntention == 1){
-                StaticJsonDocument<200> doc;
+                JsonDocument doc;
                 copyArray(coordinateTable, doc["coordinates"]);
                 serializeJson(doc, Serial);
             }
