@@ -5,3 +5,5 @@
 #define pwmMin 1860
 #define pwmFreq 50
 #define pwmResolution 16
+#define pwmChMotor1 0
+#define pwmChMotor2 1
