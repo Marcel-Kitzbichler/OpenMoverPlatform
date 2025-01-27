@@ -3,12 +3,10 @@
 #include "serialManager.h"
 
 
-double uSecPWM;
+const double uSecPWM = ((1000000/pwmFreq)/pow(2,pwmResolution));
 
 void setup(){
   Serial.begin(115200);
-  Serial2.begin(9600);
-  uSecPWM = ((1000000/pwmFreq)/pow(2,pwmResolution));
   Serial.println(uSecPWM);
   ledcSetup(pwmChMotor1, pwmFreq, pwmResolution);
   ledcSetup(pwmChMotor2, pwmFreq, pwmResolution);
