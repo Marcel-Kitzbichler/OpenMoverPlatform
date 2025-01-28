@@ -37,13 +37,9 @@ void serialManager(void * pvParameters){
                     motorHandled = true;
                     xTaskCreatePinnedToCore(wpManagerExec, "wpManagerExec", 10000,(void *) coordinateTable, 1, motorControlHandle, 1);
                 }
-                else{
-                    Serial.println("Motor is currently busy");
-                }
             }
 
             else{
-                Serial.println("Invalid intent");
                 emergencyStop();
             }
         }
