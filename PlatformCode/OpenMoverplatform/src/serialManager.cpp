@@ -4,10 +4,13 @@
 #include "config.h"
 #include "emerg.h"
 #include "wpManager.h" 
+#include "BluetoothSerial.h"
 
 bool motorHandled = false;
 
 void serialManager(void * pvParameters){
+    BluetoothSerial SerialBT;
+    SerialBT.begin("OpenMoverPlatformBTSerial");
     int64_t coordinateTable[100];
     TaskHandle_t* motorControlHandle = NULL;
     while (true){
@@ -30,6 +33,39 @@ void serialManager(void * pvParameters){
                 JsonDocument doc;
                 copyArray(coordinateTable, doc["coordinates"]);
                 serializeJson(doc, Serial);
+            }
+
+            else if(messageIntention == 2){
+                if(!motorHandled){
+                    motorHandled = true;
+                    xTaskCreatePinnedToCore(wpManagerExec, "wpManagerExec", 10000,(void *) coordinateTable, 1, motorControlHandle, 1);
+                }
+            }
+
+            else{
+                emergencyStop();
+            }
+        }
+        
+        if(SerialBT.available()){
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, SerialBT);
+            if(error){
+                Serial.print("deserializeJson() failed: ");
+                Serial.println(error.f_str());
+                emergencyStop();
+            }
+
+            int messageIntention = doc["intent"];
+
+            if(messageIntention == 0){ 
+                copyArray(doc["coordinates"], coordinateTable);
+            }
+
+            else if(messageIntention == 1){
+                JsonDocument doc;
+                copyArray(coordinateTable, doc["coordinates"]);
+                serializeJson(doc, SerialBT);
             }
 
             else if(messageIntention == 2){
