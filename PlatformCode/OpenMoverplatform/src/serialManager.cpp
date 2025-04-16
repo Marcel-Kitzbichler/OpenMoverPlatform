@@ -128,6 +128,6 @@ void serialManager(void * pvParameters){
                 emergencyStop();
             }
         }
-        vTaskDelay(500/portTICK_PERIOD_MS);
+        vTaskDelay(250/portTICK_PERIOD_MS);
     }
 }
