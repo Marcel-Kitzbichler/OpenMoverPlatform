@@ -5,6 +5,7 @@
 #include "emerg.h"
 #include "wpManager.h" 
 #include "BluetoothSerial.h"
+#include "battery.h"
 
 bool motorHandled = false;
 const double uSecPWM = ((1000000/pwmFreq)/pow(2,pwmResolution));
@@ -27,7 +28,7 @@ void serialManager(void * pvParameters){
 
             int messageIntention = doc["intent"];
 
-            if(messageIntention == 0){ 
+            if(messageIntention == 5){ 
                 copyArray(doc["coordinates"], coordinateTable);
             }
 
@@ -61,6 +62,12 @@ void serialManager(void * pvParameters){
                 }
             }
 
+            else if(messageIntention == 6){
+                JsonDocument doc;
+                doc["batteryVoltage"] = batteryVoltage();
+                serializeJson(doc, Serial);
+            }
+
             else{
                 emergencyStop();
             }
@@ -77,7 +84,7 @@ void serialManager(void * pvParameters){
 
             int messageIntention = doc["intent"];
 
-            if(messageIntention == 0){ 
+            if(messageIntention == 5){ 
                 copyArray(doc["coordinates"], coordinateTable);
             }
 
@@ -109,6 +116,12 @@ void serialManager(void * pvParameters){
                     ledcWrite(pwmChMotor1, (pwmCenter + doc["leftPWM"].as<int>()) / uSecPWM);
                     ledcWrite(pwmChMotor2, (pwmCenter + doc["rightPWM"].as<int>()) / uSecPWM);
                 }
+            }
+
+            else if(messageIntention == 6){
+                JsonDocument doc;
+                doc["batteryVoltage"] = batteryVoltage();
+                serializeJson(doc, SerialBT);
             }
 
             else{

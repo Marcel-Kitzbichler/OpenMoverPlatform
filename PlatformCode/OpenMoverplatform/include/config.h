@@ -9,3 +9,4 @@
 #define pwmChMotor2 1
 #define GPSTineout 5000
 #define GPSBaud 9600
+#define batteryADCPin 14
