@@ -6,9 +6,9 @@
 #include "wpManager.h" 
 #include "BluetoothSerial.h"
 #include "battery.h"
+#include "motorSet.h"
 
 bool motorHandled = false;
-const double uSecPWM = ((1000000/pwmFreq)/pow(2,pwmResolution));
 
 void serialManager(void * pvParameters){
     bool directMotorControlSerial = false;
@@ -51,14 +51,14 @@ void serialManager(void * pvParameters){
                 }
                 motorHandled = doc["setStatus"].as<bool>();
                 directMotorControlSerial = doc["setStatus"].as<bool>();
-                ledcWrite(pwmChMotor1, (pwmCenter) / uSecPWM);
-                ledcWrite(pwmChMotor2, (pwmCenter) / uSecPWM);
+                setMotorL(0);
+                setMotorR(0);
             }
 
             else if(messageIntention == 4){
                 if(motorHandled && directMotorControlSerial){
-                    ledcWrite(pwmChMotor1, (pwmCenter + doc["leftPWM"].as<int>()) / uSecPWM);
-                    ledcWrite(pwmChMotor2, (pwmCenter + doc["rightPWM"].as<int>()) / uSecPWM);
+                    setMotorL(doc["leftPWM"].as<int>());
+                    setMotorR(doc["rightPWM"].as<int>());
                 }
             }
 
@@ -107,14 +107,14 @@ void serialManager(void * pvParameters){
                 }
                 motorHandled = doc["setStatus"].as<bool>();
                 directMotorControlSerial = doc["setStatus"].as<bool>();
-                ledcWrite(pwmChMotor1, (pwmCenter) / uSecPWM);
-                ledcWrite(pwmChMotor2, (pwmCenter) / uSecPWM);
+                setMotorL(0);
+                setMotorR(0);
             }
 
             else if(messageIntention == 4){
                 if(motorHandled && directMotorControlSerial){
-                    ledcWrite(pwmChMotor1, (pwmCenter + doc["leftPWM"].as<int>()) / uSecPWM);
-                    ledcWrite(pwmChMotor2, (pwmCenter + doc["rightPWM"].as<int>()) / uSecPWM);
+                    setMotorL(doc["leftPWM"].as<int>());
+                    setMotorR(doc["rightPWM"].as<int>());
                 }
             }
 

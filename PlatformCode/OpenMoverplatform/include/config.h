@@ -3,6 +3,7 @@
 #define pwmCenter 1460
 #define pwmMax 1060
 #define pwmMin 1860
+#define pwmDeadband 50
 #define pwmFreq 50
 #define pwmResolution 16
 #define pwmChMotor1 0
