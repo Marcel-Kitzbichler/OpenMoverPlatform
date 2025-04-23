@@ -8,5 +8,5 @@ def parse(kmlfilePath):
     kmlfile = kmlfile.split('</coordinates></LineString>')[0]
     kmlfile = kmlfile.split(',')[:-1]
     for i in range(len(kmlfile)):
-        kmlfile[i] = int(float(kmlfile[i])*100000000000000)
+        kmlfile[i] = float(kmlfile[i])
     return kmlfile
