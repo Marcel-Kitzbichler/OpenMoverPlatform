@@ -8,6 +8,6 @@
 #define pwmResolution 16
 #define pwmChMotor1 0
 #define pwmChMotor2 1
-#define GPSTineout 5000
+#define GPSInterval 1000
 #define GPSBaud 9600
 #define batteryADCPin 14

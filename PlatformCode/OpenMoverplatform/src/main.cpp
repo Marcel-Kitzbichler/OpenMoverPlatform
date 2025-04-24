@@ -6,6 +6,7 @@
 
 void setup(){
   Serial.begin(115200);
+  Serial2.begin(GPSBaud);
   motorSetup();
   xTaskCreatePinnedToCore(serialManager, "serialManager", 10000, NULL, 1, NULL, 1);
   vTaskDelete(NULL);
