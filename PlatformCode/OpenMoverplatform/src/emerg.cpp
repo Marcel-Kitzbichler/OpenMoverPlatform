@@ -4,8 +4,11 @@
 #include "motorSet.h"
 
 void emergencyStop(){
+  vTaskEndScheduler();
   Serial.println("Emergency Stop");
   setMotorL(0);
   setMotorR(0);
-  while(true){};
+  while(true){
+    delay(1000);
+  };
 }
