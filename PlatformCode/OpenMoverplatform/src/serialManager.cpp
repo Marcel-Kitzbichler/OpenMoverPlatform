@@ -8,8 +8,10 @@
 #include "battery.h"
 #include "motorSet.h"
 #include "TinyGPSPlus.h"
+#include "goTo.h"
 
 bool motorHandled = false;
+TaskHandle_t motorControlHandle = NULL;
 TinyGPSPlus gps;
 
 void serialManager(void * pvParameters){
@@ -18,7 +20,6 @@ void serialManager(void * pvParameters){
     BluetoothSerial SerialBT;
     SerialBT.begin("OpenMoverPlatformBTSerial");
     double coordinateTable[100];
-    TaskHandle_t* motorControlHandle = NULL;
     while (true){
         if(Serial.available()){
             JsonDocument doc;
@@ -44,13 +45,17 @@ void serialManager(void * pvParameters){
             else if(messageIntention == 2){
                 if(!motorHandled){
                     motorHandled = true;
-                    xTaskCreatePinnedToCore(wpManagerExec, "wpManagerExec", 10000,(void *) coordinateTable, 1, motorControlHandle, 1);
+                    motorControlHandle = NULL;
+                    if(!xTaskCreatePinnedToCore(wpManagerExec, "wpManagerExec", 10000,(void *) coordinateTable, 1, &motorControlHandle, 1)){
+                        motorHandled = false;
+                    }
                 }
             }
 
             else if(messageIntention == 3){
                 if(motorControlHandle != NULL){
                     vTaskDelete(motorControlHandle);
+                    motorControlHandle = NULL;
                 }
                 motorHandled = doc["setStatus"].as<bool>();
                 directMotorControlSerial = doc["setStatus"].as<bool>();
@@ -75,7 +80,24 @@ void serialManager(void * pvParameters){
                 doc["lon"] = gps.location.lng();
                 doc["heading"] = gps.course.deg();
                 doc["serialControl"] = directMotorControlSerial;
+                doc["motorHandled"] = motorHandled;
                 serializeJson(doc, Serial);
+            }
+
+            else if(messageIntention == 7){
+                double* params = new double[4]; // Dynamically allocate memory for params
+                params[0] = doc["lat"].as<double>();
+                params[1] = doc["lon"].as<double>();
+                params[2] = doc["speed"].as<double>();
+                params[3] = doc["range"].as<double>();
+                if (!motorHandled){
+                    motorHandled = true;
+                    motorControlHandle = NULL;
+                    if(!xTaskCreatePinnedToCore(executePlainGoTo, "executePlainGoTo", 10000, (void *) params, 1, &motorControlHandle, 1)){
+                        motorHandled = false;
+                        delete[] params; // Free memory if task creation fails
+                    }
+                }
             }
 
             else{
@@ -107,13 +129,17 @@ void serialManager(void * pvParameters){
             else if(messageIntention == 2){
                 if(!motorHandled){
                     motorHandled = true;
-                    xTaskCreatePinnedToCore(wpManagerExec, "wpManagerExec", 10000,(void *) coordinateTable, 1, motorControlHandle, 1);
+                    motorControlHandle = NULL;
+                    if(!xTaskCreatePinnedToCore(wpManagerExec, "wpManagerExec", 10000,(void *) coordinateTable, 1, &motorControlHandle, 1)){
+                        motorHandled = false;
+                    }
                 }
             }
 
             else if(messageIntention == 3){
                 if(motorControlHandle != NULL){
                     vTaskDelete(motorControlHandle);
+                    motorControlHandle = NULL;
                 }
                 motorHandled = doc["setStatus"].as<bool>();
                 directMotorControlSerial = doc["setStatus"].as<bool>();
@@ -138,7 +164,24 @@ void serialManager(void * pvParameters){
                 doc["lon"] = gps.location.lng();
                 doc["heading"] = gps.course.deg();
                 doc["serialControl"] = directMotorControlSerial;
+                doc["motorHandled"] = motorHandled;
                 serializeJson(doc, SerialBT);
+            }
+
+            else if(messageIntention == 7){
+                double* params = new double[4]; // Dynamically allocate memory for params
+                params[0] = doc["lat"].as<double>();
+                params[1] = doc["lon"].as<double>();
+                params[2] = doc["speed"].as<double>();
+                params[3] = doc["range"].as<double>();
+                if (!motorHandled){
+                    motorHandled = true;
+                    motorControlHandle = NULL;
+                    if(!xTaskCreatePinnedToCore(executePlainGoTo, "executePlainGoTo", 10000, (void *) params, 1, &motorControlHandle, 1)){
+                        motorHandled = false;
+                        delete[] params; // Free memory if task creation fails
+                    }
+                }
             }
 
             else{
@@ -153,6 +196,6 @@ void serialManager(void * pvParameters){
             }
         }
 
-        vTaskDelay(100/portTICK_PERIOD_MS);
+        vTaskDelay(50/portTICK_PERIOD_MS);
     }
 }
