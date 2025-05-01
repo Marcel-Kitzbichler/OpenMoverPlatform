@@ -2,11 +2,13 @@
 #include "config.h" 
 #include "serialManager.h"
 #include "MotorSet.h"
+#include "compass.h"
 
 
 void setup(){
   Serial.begin(115200);
   Serial2.begin(GPSBaud);
+  initCompass();
   motorSetup();
   xTaskCreatePinnedToCore(serialManager, "serialManager", 10000, NULL, 1, NULL, 1);
   vTaskDelete(NULL);

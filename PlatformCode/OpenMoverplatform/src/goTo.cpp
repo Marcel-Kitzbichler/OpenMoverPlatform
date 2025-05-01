@@ -3,6 +3,7 @@
 #include "MotorSet.h"
 #include "TinyGPSPlus.h"
 #include "endMotorTask.h"
+#include "compass.h"
 
 extern bool motorHandled;
 extern TinyGPSPlus gps;
@@ -28,19 +29,25 @@ void goTo(double lat, double lon, int speed, double range) {
             return;
         }
 
+        while (gps.location.age() > 2000) {
+            setMotorL(0); // Stop left motor
+            setMotorR(0); // Stop right motor
+            vTaskDelay(1000/portTICK_PERIOD_MS); // Wait for a valid GPS fix
+        }
+        
+
         double currentLat = gps.location.lat();
         double currentLon = gps.location.lng();
         double distanceToTarget = TinyGPSPlus::distanceBetween(currentLat, currentLon, lat, lon);
 
         if (distanceToTarget <= range) {
-            Serial.println("Target reached within range.");
             setMotorL(0); // Stop left motor
             setMotorR(0); // Stop right motor
             return;
         }
 
         double courseToTarget = gps.courseTo(currentLat, currentLon, lat, lon);
-        double currentCourse = gps.course.deg(); // Assuming current course is available
+        double currentCourse = getHeading(); // Assuming current course is available
         double courseError = courseToTarget - currentCourse;
 
         // Normalize course error to range [-180, 180]
@@ -54,10 +61,10 @@ void goTo(double lat, double lon, int speed, double range) {
         if (courseError > 0) {
             // Turn right
             leftMotorSpeed = speed;
-            rightMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed / 2));
+            rightMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed * 0.8));
         } else if (courseError < 0) {
             // Turn left
-            leftMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed / 2));
+            leftMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed * 0.8));	
             rightMotorSpeed = speed;
         }
 

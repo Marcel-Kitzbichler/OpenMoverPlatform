@@ -9,6 +9,7 @@
 #include "motorSet.h"
 #include "TinyGPSPlus.h"
 #include "goTo.h"
+#include "compass.h"
 
 bool motorHandled = false;
 TaskHandle_t motorControlHandle = NULL;
@@ -78,7 +79,7 @@ void serialManager(void * pvParameters){
                 doc["locationAge"] = gps.location.age();
                 doc["lat"] = gps.location.lat();
                 doc["lon"] = gps.location.lng();
-                doc["heading"] = gps.course.deg();
+                doc["heading"] = getHeading();
                 doc["serialControl"] = directMotorControlSerial;
                 doc["motorHandled"] = motorHandled;
                 serializeJson(doc, Serial);
@@ -162,7 +163,7 @@ void serialManager(void * pvParameters){
                 doc["locationAge"] = gps.location.age();
                 doc["lat"] = gps.location.lat();
                 doc["lon"] = gps.location.lng();
-                doc["heading"] = gps.course.deg();
+                doc["heading"] = getHeading();
                 doc["serialControl"] = directMotorControlSerial;
                 doc["motorHandled"] = motorHandled;
                 serializeJson(doc, SerialBT);
