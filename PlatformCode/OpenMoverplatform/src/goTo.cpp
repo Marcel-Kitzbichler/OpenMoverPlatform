@@ -21,12 +21,12 @@ void executePlainGoTo(void * pvParameters) {
     endMotorTask(); // Call the function to end the motor task
 }
 
-void goTo(double lat, double lon, int speed, double range) {
+bool goTo(double lat, double lon, int speed, double range) {
     while (motorHandled) {
-        if (!(gps.location.isValid()&&gps.course.isValid())) {
+        if (!(gps.location.isValid())) {
             setMotorL(0);
             setMotorR(0);
-            return;
+            return false;
         }
 
         while (gps.location.age() > 2000) {
@@ -43,7 +43,7 @@ void goTo(double lat, double lon, int speed, double range) {
         if (distanceToTarget <= range) {
             setMotorL(0); // Stop left motor
             setMotorR(0); // Stop right motor
-            return;
+            return true;
         }
 
         double courseToTarget = gps.courseTo(currentLat, currentLon, lat, lon);
@@ -61,10 +61,10 @@ void goTo(double lat, double lon, int speed, double range) {
         if (courseError > 0) {
             // Turn right
             leftMotorSpeed = speed;
-            rightMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed * 0.8));
+            rightMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed));
         } else if (courseError < 0) {
             // Turn left
-            leftMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed * 0.8));	
+            leftMotorSpeed = speed - (int)((abs(courseError) / 180.0 * speed));	
             rightMotorSpeed = speed;
         }
 
@@ -76,4 +76,5 @@ void goTo(double lat, double lon, int speed, double range) {
 
         vTaskDelay(500/portTICK_PERIOD_MS); // Adjust delay as needed
     }
+    return false; // Return false if the task is stopped
 }

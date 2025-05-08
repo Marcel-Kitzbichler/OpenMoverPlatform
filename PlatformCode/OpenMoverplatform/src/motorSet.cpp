@@ -4,6 +4,8 @@
 
 
 const double uSecPWM = ((1000000/pwmFreq)/pow(2,pwmResolution));
+float biasL = 1.0;
+float biasR = 1.0;
 
 void motorSetup() {
     ledcSetup(pwmChMotor1, pwmFreq, pwmResolution);
@@ -16,9 +18,9 @@ void motorSetup() {
 
 void setMotorL(int speed) {
     if (speed > 0) {
-        ledcWrite(pwmChMotor1, (pwmCenter + speed + pwmDeadband) / uSecPWM);
+        ledcWrite(pwmChMotor1, (pwmCenter + (speed * biasL) + pwmDeadband) / uSecPWM);
     } else if (speed < 0) {
-        ledcWrite(pwmChMotor1, (pwmCenter - speed - pwmDeadband) / uSecPWM);
+        ledcWrite(pwmChMotor1, (pwmCenter + (speed * biasL) - pwmDeadband) / uSecPWM);
     } else {
         ledcWrite(pwmChMotor1, pwmCenter / uSecPWM);
     }
@@ -26,10 +28,15 @@ void setMotorL(int speed) {
 
 void setMotorR(int speed) {
     if (speed > 0) {
-        ledcWrite(pwmChMotor2, (pwmCenter + speed + pwmDeadband) / uSecPWM);
+        ledcWrite(pwmChMotor2, (pwmCenter + (speed * biasR) + pwmDeadband) / uSecPWM);
     } else if (speed < 0) {
-        ledcWrite(pwmChMotor2, (pwmCenter - speed - pwmDeadband) / uSecPWM);
+        ledcWrite(pwmChMotor2, (pwmCenter + (speed * biasR) - pwmDeadband) / uSecPWM);
     } else {
         ledcWrite(pwmChMotor2, pwmCenter / uSecPWM);
     }
+}
+
+void setMotorBias(float biasL, float biasR) {
+    ::biasL = biasL;
+    ::biasR = biasR;
 }

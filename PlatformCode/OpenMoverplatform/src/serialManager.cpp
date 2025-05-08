@@ -14,6 +14,10 @@
 bool motorHandled = false;
 TaskHandle_t motorControlHandle = NULL;
 TinyGPSPlus gps;
+extern double MagXMin;
+extern double MagXMax;
+extern double MagYMax;
+extern double MagYMin;
 
 void serialManager(void * pvParameters){
     bool directMotorControlSerial = false;
@@ -82,6 +86,10 @@ void serialManager(void * pvParameters){
                 doc["heading"] = getHeading();
                 doc["serialControl"] = directMotorControlSerial;
                 doc["motorHandled"] = motorHandled;
+                doc["magXMin"] = MagXMin;
+                doc["magXMax"] = MagXMax;
+                doc["magYMin"] = MagYMin;
+                doc["magYMax"] = MagYMax;
                 serializeJson(doc, Serial);
             }
 
@@ -99,6 +107,27 @@ void serialManager(void * pvParameters){
                         delete[] params; // Free memory if task creation fails
                     }
                 }
+            }
+
+            else if (messageIntention == 8) {
+                if (!motorHandled){
+                    motorHandled = true;
+                    motorControlHandle = NULL;
+                    if(!xTaskCreatePinnedToCore(calibrateMag, "calibrateCompass", 10000, NULL, 1, &motorControlHandle, 1)){
+                        motorHandled = false;
+                    }
+                }
+            }
+
+            else if (messageIntention == 9) {
+                JsonDocument doc;
+                doc["magXMin"] = MagXMin;
+                doc["magXMax"] = MagXMax;
+                doc["magYMin"] = MagYMin;
+                doc["magYMax"] = MagYMax;
+                doc["magX"] = getMagX();
+                doc["magY"] = getMagY();
+                serializeJson(doc, Serial);
             }
 
             else{
@@ -166,6 +195,10 @@ void serialManager(void * pvParameters){
                 doc["heading"] = getHeading();
                 doc["serialControl"] = directMotorControlSerial;
                 doc["motorHandled"] = motorHandled;
+                doc["magXMin"] = MagXMin;
+                doc["magXMax"] = MagXMax;
+                doc["magYMin"] = MagYMin;
+                doc["magYMax"] = MagYMax;
                 serializeJson(doc, SerialBT);
             }
 
@@ -185,6 +218,27 @@ void serialManager(void * pvParameters){
                 }
             }
 
+            else if (messageIntention == 8) {
+                if (!motorHandled){
+                    motorHandled = true;
+                    motorControlHandle = NULL;
+                    if(!xTaskCreatePinnedToCore(calibrateMag, "calibrateCompass", 10000, NULL, 1, &motorControlHandle, 1)){
+                        motorHandled = false;
+                    }
+                }
+            }
+
+            else if (messageIntention == 9) {
+                JsonDocument doc;
+                doc["magXMin"] = MagXMin;
+                doc["magXMax"] = MagXMax;
+                doc["magYMin"] = MagYMin;
+                doc["magYMax"] = MagYMax;
+                doc["magX"] = getMagX();
+                doc["magY"] = getMagY();
+                serializeJson(doc, SerialBT);
+            }
+
             else{
                 emergencyStop();
             }
@@ -197,6 +251,6 @@ void serialManager(void * pvParameters){
             }
         }
 
-        vTaskDelay(50/portTICK_PERIOD_MS);
+        vTaskDelay(69/portTICK_PERIOD_MS);
     }
 }
