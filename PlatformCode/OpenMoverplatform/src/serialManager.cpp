@@ -130,6 +130,10 @@ void serialManager(void * pvParameters){
                 serializeJson(doc, Serial);
             }
 
+            else if (messageIntention == 10) {
+                setMotorBias(doc["biasL"].as<float>(), doc["biasR"].as<float>());
+            }
+
             else{
                 emergencyStop();
             }
@@ -237,6 +241,10 @@ void serialManager(void * pvParameters){
                 doc["magX"] = getMagX();
                 doc["magY"] = getMagY();
                 serializeJson(doc, SerialBT);
+            }
+
+            else if (messageIntention == 10) {
+                setMotorBias(doc["biasL"].as<float>(), doc["biasR"].as<float>());
             }
 
             else{

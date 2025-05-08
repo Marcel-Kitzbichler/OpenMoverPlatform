@@ -1,6 +1,7 @@
 #include "motorSet.h"
 #include "Arduino.h"
 #include "config.h"
+#include "Preferences.h"
 
 
 const double uSecPWM = ((1000000/pwmFreq)/pow(2,pwmResolution));
@@ -36,7 +37,14 @@ void setMotorR(int speed) {
     }
 }
 
-void setMotorBias(float biasL, float biasR) {
+void setMotorBias(float biasL, float biasR, bool saveToPreferences) {
     ::biasL = biasL;
     ::biasR = biasR;
+    if (saveToPreferences) {
+        Preferences preferences;
+        preferences.begin("botConfig", false);
+        preferences.putFloat("biasL", biasL);
+        preferences.putFloat("biasR", biasR);
+        preferences.end();
+    }
 }
