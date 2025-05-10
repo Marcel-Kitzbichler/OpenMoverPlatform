@@ -1,7 +1,6 @@
 import serial
 import intent5
-import intent1
-import intent2
+import intent9
 import os
 
 # Configure the serial port
@@ -18,16 +17,12 @@ ser = serial.Serial(
 while True:
     if ser.is_open:
         os.system('cls')
-        print("0: upload cords")
-        print("1: download cords")
-        print("2: start wp mission")
+        print("5: upload cords")
+        print("9: log mag data")
         choice = int(input("Choice :"))
 
         if choice == 0:
             intent5.process(ser)
 
-        elif choice == 1:
-            intent1.process(ser)
-
-        elif choice == 2:
-            intent2.process(ser)
+        elif choice == 9:
+            intent9.process(ser)

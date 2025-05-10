@@ -8,8 +8,10 @@
 #define pwmResolution 16
 #define pwmChMotor1 0
 #define pwmChMotor2 1
-#define GPSInterval 1000
+#define GPSInterval 920
 #define GPSBaud 9600
 #define magSDAPin 18
 #define magSCLPin 23
 #define batteryADCPin 14
+#define MagCalibrationTime 20000
+#define MagCalibrationSpeed 20
