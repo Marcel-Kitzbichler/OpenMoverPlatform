@@ -14,10 +14,10 @@ void setup(){
   Preferences preferences;
   preferences.begin("botConfig", false);
   setMotorBias(preferences.getFloat("biasL", 1.0), preferences.getFloat("biasR", 1.0), false);
-  MagXMin = preferences.getFloat("magXMin", 0.0);
-  MagXMax = preferences.getFloat("magXMax", 0.0);
-  MagYMin = preferences.getFloat("magYMin", 0.0);
-  MagYMax = preferences.getFloat("magYMax", 0.0);
+  MagXMin = preferences.getDouble("magXMin", 0.0);
+  MagXMax = preferences.getDouble("magXMax", 0.0);
+  MagYMin = preferences.getDouble("magYMin", 0.0);
+  MagYMax = preferences.getDouble("magYMax", 0.0);
   preferences.end();
   Serial.begin(115200);
   Serial2.begin(GPSBaud);
