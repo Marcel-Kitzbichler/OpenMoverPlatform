@@ -90,6 +90,8 @@ void serialManager(void * pvParameters){
                 doc["magXMax"] = MagXMax;
                 doc["magYMin"] = MagYMin;
                 doc["magYMax"] = MagYMax;
+                doc["setPointL"] = getMotorL();
+                doc["setPointR"] = getMotorR();
                 serializeJson(doc, Serial);
             }
 
@@ -203,6 +205,8 @@ void serialManager(void * pvParameters){
                 doc["magXMax"] = MagXMax;
                 doc["magYMin"] = MagYMin;
                 doc["magYMax"] = MagYMax;
+                doc["setPointL"] = getMotorL();
+                doc["setPointR"] = getMotorR();
                 serializeJson(doc, SerialBT);
             }
 
