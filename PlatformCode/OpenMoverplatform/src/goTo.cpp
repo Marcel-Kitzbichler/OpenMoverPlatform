@@ -78,3 +78,8 @@ bool goTo(double lat, double lon, int speed, double range) {
     }
     return false; // Return false if the task is stopped
 }
+
+double steerCurve(double input){
+    //gets a steering value between -1 and 1 adds a curve to it and returns a value between -1 and 1
+    return sqrt(input) * (input > 0 ? 1 : -1);
+}
