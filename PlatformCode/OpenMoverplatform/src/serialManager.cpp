@@ -4,12 +4,21 @@
 #include "config.h"
 #include "emerg.h"
 #include "wpManager.h" 
-#include "BluetoothSerial.h"
 #include "battery.h"
 #include "motorSet.h"
 #include "TinyGPSPlus.h"
 #include "goTo.h"
 #include "compass.h"
+
+#ifdef __ESP32D0WDQ6__
+    #include "BluetoothSerial.h"
+    BluetoothSerial SerialBT;
+#endif
+
+#ifdef __ESP32S3__
+    #include "BLESerial.h"
+    BLESerial<> SerialBT;
+#endif
 
 bool motorHandled = false;
 TaskHandle_t motorControlHandle = NULL;
@@ -22,7 +31,6 @@ extern double MagYMin;
 void serialManager(void * pvParameters){
     bool directMotorControlSerial = false;
     unsigned long lastGPS = millis();
-    BluetoothSerial SerialBT;
     SerialBT.begin("OpenMoverPlatformBTSerial");
     double coordinateTable[100];
     while (true){
