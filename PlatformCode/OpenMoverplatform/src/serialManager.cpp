@@ -29,6 +29,9 @@ extern double MagYMax;
 extern double MagYMin;
 
 void serialManager(void * pvParameters){
+    Serial.begin(115200);
+    Serial2.begin(GPSBaud, SERIAL_8N1, 16, 15);
+
     bool directMotorControlSerial = false;
     unsigned long lastGPS = millis();
     SerialBT.begin("OpenMoverPlatformBTSerial");
@@ -150,8 +153,18 @@ void serialManager(void * pvParameters){
         }
         
         if(SerialBT.available()){
+            
+            char buffer[BTSerialBufferSize];
+
+            const int availableBytes = SerialBT.available();
+            for(int i=0; SerialBT.available() && i < BTSerialBufferSize; i++)
+            {
+                buffer[i] = SerialBT.read();
+            }
+
             JsonDocument doc;
-            DeserializationError error = deserializeJson(doc, SerialBT);
+            DeserializationError error = deserializeJson(doc, buffer);
+
             if(error){
                 Serial.print("deserializeJson() failed: ");
                 Serial.println(error.f_str());
@@ -215,7 +228,9 @@ void serialManager(void * pvParameters){
                 doc["magYMax"] = MagYMax;
                 doc["setPointL"] = getMotorL();
                 doc["setPointR"] = getMotorR();
-                serializeJson(doc, SerialBT);
+                char respBuffer[BTSerialBufferSize];
+                size_t respLen = serializeJson(doc, respBuffer, sizeof(buffer));
+                SerialBT.write((const uint8_t*)respBuffer, respLen);
             }
 
             else if(messageIntention == 7){
@@ -252,7 +267,9 @@ void serialManager(void * pvParameters){
                 doc["magYMax"] = MagYMax;
                 doc["magX"] = getMagX();
                 doc["magY"] = getMagY();
-                serializeJson(doc, SerialBT);
+                char respBuffer[BTSerialBufferSize];
+                size_t respLen = serializeJson(doc, respBuffer, sizeof(buffer));
+                SerialBT.write((const uint8_t*)respBuffer, respLen);
             }
 
             else if (messageIntention == 10) {
@@ -270,7 +287,6 @@ void serialManager(void * pvParameters){
                 gps.encode(Serial2.read());
             }
         }
-
-        vTaskDelay(69/portTICK_PERIOD_MS);
+        vTaskDelay(200/portTICK_PERIOD_MS);
     }
 }
