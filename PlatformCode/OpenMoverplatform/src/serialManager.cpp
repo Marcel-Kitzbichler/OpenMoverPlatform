@@ -160,6 +160,9 @@ void serialManager(void * pvParameters){
             for(int i=0; SerialBT.available() && i < BTSerialBufferSize; i++)
             {
                 buffer[i] = SerialBT.read();
+                if(buffer[i] == '}'){ // Check for end of JSON message
+                    break;
+                }
             }
 
             JsonDocument doc;
