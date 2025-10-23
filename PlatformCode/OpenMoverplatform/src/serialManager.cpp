@@ -163,7 +163,10 @@ void serialManager(void * pvParameters){
                 if(buffer[i] == '}'){ // Check for end of JSON message
                     break;
                 }
+                SerialBT.flush();
             }
+
+            buffer[0] = '{';
 
             JsonDocument doc;
             DeserializationError error = deserializeJson(doc, buffer);
@@ -171,7 +174,7 @@ void serialManager(void * pvParameters){
             if(error){
                 Serial.print("deserializeJson() failed: ");
                 Serial.println(error.f_str());
-                emergencyStop();
+                //emergencyStop();
             }
 
             int messageIntention = doc["intent"];
@@ -280,7 +283,7 @@ void serialManager(void * pvParameters){
             }
 
             else{
-                emergencyStop();
+                //emergencyStop();
             }
         }
 
@@ -290,6 +293,6 @@ void serialManager(void * pvParameters){
                 gps.encode(Serial2.read());
             }
         }
-        vTaskDelay(200/portTICK_PERIOD_MS);
+        vTaskDelay(50/portTICK_PERIOD_MS);
     }
 }
