@@ -50,12 +50,12 @@ class PlatformGUI:
         self.notebook.add(self.log_tab, text="Console Log")
         
         # Setup each tab
+        self.setup_log_tab()
         self.setup_connection_tab()
         self.setup_status_tab()
         self.setup_motor_tab()
         self.setup_waypoint_tab()
         self.setup_compass_tab()
-        self.setup_log_tab()
         
     def setup_connection_tab(self):
         """Setup connection configuration tab"""
