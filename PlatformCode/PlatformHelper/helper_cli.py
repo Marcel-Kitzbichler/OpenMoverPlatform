@@ -110,7 +110,7 @@ class PlatformCLI:
         
         try:
             kml_array = parsekml.parse(kml_path)
-            kml_array.insert(0, len(kml_array) / 2)
+            kml_array.insert(0, len(kml_array) // 2)
             speed = float(input("Speed: "))
             range_val = float(input("Range: "))
             kml_array.insert(1, speed)

@@ -404,21 +404,49 @@ The platform will automatically update calibration parameters."""
                 
     def update_status_display(self, data):
         """Update status display with received data"""
-        self.status_labels["batteryVoltage"].config(text=f"{data.get('batteryVoltage', 'N/A')} V")
+        # Battery voltage
+        battery = data.get('batteryVoltage')
+        self.status_labels["batteryVoltage"].config(
+            text=f"{battery} V" if battery != 'N/A' and battery is not None else "N/A")
+        
+        # Simple values
         self.status_labels["numSats"].config(text=str(data.get('numSats', 'N/A')))
         self.status_labels["fix"].config(text=str(data.get('fix', 'N/A')))
         self.status_labels["locationAge"].config(text=str(data.get('locationAge', 'N/A')))
-        self.status_labels["lat"].config(text=f"{data.get('lat', 'N/A'):.6f}")
-        self.status_labels["lon"].config(text=f"{data.get('lon', 'N/A'):.6f}")
-        self.status_labels["heading"].config(text=f"{data.get('heading', 'N/A'):.1f}")
+        
+        # GPS coordinates with formatting
+        lat = data.get('lat')
+        self.status_labels["lat"].config(
+            text=f"{lat:.6f}" if isinstance(lat, (int, float)) else "N/A")
+        lon = data.get('lon')
+        self.status_labels["lon"].config(
+            text=f"{lon:.6f}" if isinstance(lon, (int, float)) else "N/A")
+        
+        # Heading with formatting
+        heading = data.get('heading')
+        self.status_labels["heading"].config(
+            text=f"{heading:.1f}" if isinstance(heading, (int, float)) else "N/A")
+        
+        # Status flags
         self.status_labels["serialControl"].config(text=str(data.get('serialControl', 'N/A')))
         self.status_labels["motorHandled"].config(text=str(data.get('motorHandled', 'N/A')))
         self.status_labels["setPointL"].config(text=str(data.get('setPointL', 'N/A')))
         self.status_labels["setPointR"].config(text=str(data.get('setPointR', 'N/A')))
-        self.status_labels["magXRange"].config(
-            text=f"[{data.get('magXMin', 'N/A'):.1f}, {data.get('magXMax', 'N/A'):.1f}]")
-        self.status_labels["magYRange"].config(
-            text=f"[{data.get('magYMin', 'N/A'):.1f}, {data.get('magYMax', 'N/A'):.1f}]")
+        
+        # Magnetometer ranges with formatting
+        magXMin = data.get('magXMin')
+        magXMax = data.get('magXMax')
+        if isinstance(magXMin, (int, float)) and isinstance(magXMax, (int, float)):
+            self.status_labels["magXRange"].config(text=f"[{magXMin:.1f}, {magXMax:.1f}]")
+        else:
+            self.status_labels["magXRange"].config(text="N/A")
+        
+        magYMin = data.get('magYMin')
+        magYMax = data.get('magYMax')
+        if isinstance(magYMin, (int, float)) and isinstance(magYMax, (int, float)):
+            self.status_labels["magYRange"].config(text=f"[{magYMin:.1f}, {magYMax:.1f}]")
+        else:
+            self.status_labels["magYRange"].config(text="N/A")
         
     def set_motor_mode(self, enable):
         """Set motor control mode"""
@@ -463,14 +491,14 @@ The platform will automatically update calibration parameters."""
         
         try:
             kml_array = parsekml.parse(kml_path)
-            kml_array.insert(0, len(kml_array) / 2)
+            kml_array.insert(0, len(kml_array) // 2)
             speed = self.kml_speed_var.get()
             range_val = self.kml_range_var.get()
             kml_array.insert(1, speed)
             kml_array.insert(2, range_val)
             
             self.send_json({"intent": 5, "coordinates": kml_array})
-            messagebox.showinfo("Success", f"Uploaded {int(len(kml_array)-3)/2} coordinates")
+            messagebox.showinfo("Success", f"Uploaded {(len(kml_array)-3)//2} coordinates")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to upload: {e}")
             
