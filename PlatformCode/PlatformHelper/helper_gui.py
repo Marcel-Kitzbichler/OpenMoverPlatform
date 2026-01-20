@@ -11,8 +11,15 @@ import serial.tools.list_ports
 import json
 import time
 import threading
+import socket
 from pathlib import Path
 import parsekml
+
+try:
+    from serial.rfc2217 import Serial as RFC2217Serial
+    RFC2217_AVAILABLE = True
+except ImportError:
+    RFC2217_AVAILABLE = False
 
 
 class PlatformGUI:
@@ -25,6 +32,7 @@ class PlatformGUI:
         self.connected = False
         self.auto_status_running = False
         self.status_thread = None
+        self.connection_type = "serial"  # "serial" or "network"
         
         self.setup_ui()
         
@@ -59,34 +67,73 @@ class PlatformGUI:
         
     def setup_connection_tab(self):
         """Setup connection configuration tab"""
-        frame = ttk.LabelFrame(self.connection_tab, text="Serial Connection", padding=10)
+        frame = ttk.LabelFrame(self.connection_tab, text="Connection Settings", padding=10)
         frame.pack(fill='both', expand=True, padx=10, pady=10)
         
-        # Port selection
-        ttk.Label(frame, text="Serial Port:").grid(row=0, column=0, sticky='w', pady=5)
+        # Connection type selection
+        ttk.Label(frame, text="Connection Type:").grid(row=0, column=0, sticky='w', pady=5)
+        self.conn_type_var = tk.StringVar(value="serial")
+        conn_type_frame = ttk.Frame(frame)
+        conn_type_frame.grid(row=0, column=1, columnspan=2, sticky='w', padx=5, pady=5)
+        ttk.Radiobutton(conn_type_frame, text="Serial Port", variable=self.conn_type_var, 
+                       value="serial", command=self.update_connection_fields).pack(side='left', padx=5)
+        ttk.Radiobutton(conn_type_frame, text="Network (Wokwi/RFC2217)", variable=self.conn_type_var, 
+                       value="network", command=self.update_connection_fields).pack(side='left', padx=5)
+        
+        # Serial port selection
+        self.port_label = ttk.Label(frame, text="Serial Port:")
+        self.port_label.grid(row=1, column=0, sticky='w', pady=5)
         self.port_var = tk.StringVar()
         self.port_combo = ttk.Combobox(frame, textvariable=self.port_var, width=30)
-        self.port_combo.grid(row=0, column=1, padx=5, pady=5)
+        self.port_combo.grid(row=1, column=1, padx=5, pady=5)
         
-        ttk.Button(frame, text="Refresh Ports", command=self.refresh_ports).grid(row=0, column=2, padx=5, pady=5)
+        self.refresh_btn = ttk.Button(frame, text="Refresh Ports", command=self.refresh_ports)
+        self.refresh_btn.grid(row=1, column=2, padx=5, pady=5)
+        
+        # Network host
+        self.host_label = ttk.Label(frame, text="Host:")
+        self.host_label.grid(row=2, column=0, sticky='w', pady=5)
+        self.host_var = tk.StringVar(value="localhost")
+        self.host_entry = ttk.Entry(frame, textvariable=self.host_var, width=32)
+        self.host_entry.grid(row=2, column=1, padx=5, pady=5)
+        
+        # Network port
+        self.net_port_label = ttk.Label(frame, text="Port:")
+        self.net_port_label.grid(row=3, column=0, sticky='w', pady=5)
+        self.net_port_var = tk.StringVar(value="9000")
+        self.net_port_entry = ttk.Entry(frame, textvariable=self.net_port_var, width=32)
+        self.net_port_entry.grid(row=3, column=1, padx=5, pady=5)
+        
+        # Protocol selection for network
+        self.protocol_label = ttk.Label(frame, text="Protocol:")
+        self.protocol_label.grid(row=4, column=0, sticky='w', pady=5)
+        self.protocol_var = tk.StringVar(value="socket")
+        protocol_frame = ttk.Frame(frame)
+        protocol_frame.grid(row=4, column=1, sticky='w', padx=5, pady=5)
+        ttk.Radiobutton(protocol_frame, text="Raw Socket", variable=self.protocol_var, 
+                       value="socket").pack(side='left', padx=5)
+        if RFC2217_AVAILABLE:
+            ttk.Radiobutton(protocol_frame, text="RFC2217", variable=self.protocol_var, 
+                           value="rfc2217").pack(side='left', padx=5)
         
         # Baudrate
-        ttk.Label(frame, text="Baudrate:").grid(row=1, column=0, sticky='w', pady=5)
+        ttk.Label(frame, text="Baudrate:").grid(row=5, column=0, sticky='w', pady=5)
         self.baudrate_var = tk.StringVar(value="115200")
         baudrate_combo = ttk.Combobox(frame, textvariable=self.baudrate_var, 
                                       values=["9600", "19200", "38400", "57600", "115200"], width=30)
-        baudrate_combo.grid(row=1, column=1, padx=5, pady=5)
+        baudrate_combo.grid(row=5, column=1, padx=5, pady=5)
         
         # Connect button
         self.connect_btn = ttk.Button(frame, text="Connect", command=self.toggle_connection)
-        self.connect_btn.grid(row=2, column=0, columnspan=3, pady=20)
+        self.connect_btn.grid(row=6, column=0, columnspan=3, pady=20)
         
         # Status
         self.conn_status_label = ttk.Label(frame, text="Disconnected", foreground="red")
-        self.conn_status_label.grid(row=3, column=0, columnspan=3)
+        self.conn_status_label.grid(row=7, column=0, columnspan=3)
         
-        # Initial port refresh
+        # Initial setup
         self.refresh_ports()
+        self.update_connection_fields()
         
     def setup_status_tab(self):
         """Setup status monitoring tab"""
@@ -308,6 +355,34 @@ The platform will automatically update calibration parameters."""
         self.log_text.delete('1.0', 'end')
         self.log_text.config(state='disabled')
         
+    def update_connection_fields(self):
+        """Update visibility of connection fields based on connection type"""
+        conn_type = self.conn_type_var.get()
+        
+        if conn_type == "serial":
+            # Show serial fields
+            self.port_label.grid()
+            self.port_combo.grid()
+            self.refresh_btn.grid()
+            # Hide network fields
+            self.host_label.grid_remove()
+            self.host_entry.grid_remove()
+            self.net_port_label.grid_remove()
+            self.net_port_entry.grid_remove()
+            self.protocol_label.grid_remove()
+            self.protocol_label.master.winfo_children()[0].grid_remove()
+        else:
+            # Hide serial fields
+            self.port_label.grid_remove()
+            self.port_combo.grid_remove()
+            self.refresh_btn.grid_remove()
+            # Show network fields
+            self.host_label.grid()
+            self.host_entry.grid()
+            self.net_port_label.grid()
+            self.net_port_entry.grid()
+            self.protocol_label.grid()
+    
     def refresh_ports(self):
         """Refresh available serial ports"""
         ports = serial.tools.list_ports.comports()
@@ -318,22 +393,66 @@ The platform will automatically update calibration parameters."""
         self.log_message(f"Found {len(port_list)} serial port(s)")
         
     def toggle_connection(self):
-        """Connect or disconnect from serial port"""
+        """Connect or disconnect from serial port or network"""
         if not self.connected:
             try:
-                port = self.port_var.get()
+                conn_type = self.conn_type_var.get()
                 baudrate = int(self.baudrate_var.get())
-                self.ser = serial.Serial(port, baudrate, timeout=2)
+                
+                if conn_type == "serial":
+                    # Standard serial port connection
+                    port = self.port_var.get()
+                    if not port:
+                        messagebox.showwarning("No Port", "Please select a serial port")
+                        return
+                    self.ser = serial.Serial(port, baudrate, timeout=2)
+                    self.connection_type = "serial"
+                    conn_info = f"{port} at {baudrate} baud"
+                    self.log_message(f"Connected to {conn_info}")
+                else:
+                    # Network connection
+                    host = self.host_var.get()
+                    net_port = self.net_port_var.get()
+                    protocol = self.protocol_var.get()
+                    
+                    if not host or not net_port:
+                        messagebox.showwarning("Invalid Input", "Please enter host and port")
+                        return
+                    
+                    try:
+                        net_port_int = int(net_port)
+                    except ValueError:
+                        messagebox.showerror("Invalid Port", "Port must be a number")
+                        return
+                    
+                    if protocol == "rfc2217" and RFC2217_AVAILABLE:
+                        # RFC2217 protocol (telnet-based serial)
+                        url = f"rfc2217://{host}:{net_port_int}"
+                        self.ser = RFC2217Serial(url, baudrate=baudrate, timeout=2)
+                        self.connection_type = "network_rfc2217"
+                        conn_info = f"{host}:{net_port_int} (RFC2217)"
+                    else:
+                        # Raw socket connection (Wokwi style)
+                        self.ser = SocketSerial(host, net_port_int, timeout=2)
+                        self.connection_type = "network_socket"
+                        conn_info = f"{host}:{net_port_int} (Socket)"
+                    
+                    self.log_message(f"Connected to {conn_info}")
+                
                 self.connected = True
                 self.connect_btn.config(text="Disconnect")
-                self.conn_status_label.config(text=f"Connected to {port}", foreground="green")
-                self.log_message(f"Connected to {port} at {baudrate} baud")
+                self.conn_status_label.config(text=f"Connected to {conn_info}", foreground="green")
+                
             except Exception as e:
                 messagebox.showerror("Connection Error", f"Failed to connect: {e}")
                 self.log_message(f"Connection failed: {e}")
         else:
             if self.ser:
-                self.ser.close()
+                try:
+                    self.ser.close()
+                except:
+                    pass
+            self.ser = None
             self.connected = False
             self.auto_status_var.set(False)
             self.toggle_auto_status()
