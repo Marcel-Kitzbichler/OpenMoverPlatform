@@ -52,7 +52,7 @@
 \maketitle
 
 \section{Einleitung}
-Die OpenMoverPlatform ist ein mobiler Roboter, der selbstständig fahren oder ferngesteuert werden kann. Dieses Dokument beschreibt den aktuellen Stand des Projekts. Es ist eine Zusammenfassung der Mechanik, der Elektronik und der Software. Alle Designs und der Quellcode können im Projekt-Repository gefunden werden: \url{https://github.com/Marcel-Kitzbichler/OpenMoverPlatform}
+Die OpenMoverPlatform ist ein mobiler Roboter, der selbstständig fahren oder ferngesteuert werden kann. Dieses Dokument beschreibt den aktuellen Stand der Mechanik, der Elektronik und der Software. Alle Designs und der Quellcode können im Projekt-Repository gefunden werden: \url{https://github.com/Marcel-Kitzbichler/OpenMoverPlatform}
 
 \section{Aufbau des Systems}
 
@@ -63,13 +63,12 @@ Das Gehäuse und die mechanischen Teile wurden mit SolidWorks konstruiert. Das D
 Der Antrieb wurde bisher in zwei Versionen entwickelt:
 \begin{itemize}
     \item \textbf{Version 1}: Ein erster Prototyp, um testen zu können ob ein komplett auf dem 3D-Drucker geferigtes Getriebe überhaupt machbar ist.
-    \item \textbf{Version 2 (Aktuell)}: Diese Version ist fortgeschrittener. Sie besitzt ein Getriebe mit mehreren Gängen und einen Kettenantrieb (\texttt{Panzerketten}). Damit soll der Roboter auch in schwierigem Gelände gut fahren können.
+    \item \textbf{Version 2 (Aktuell)}: Diese Version ist fortgeschrittener. Sie besitzt ein Getriebe bestehend aus mehreren 3D-gedruckten Zahnrädern und einen Kettenantrieb. Durch die hohe Übersetzung kann sich der Roboter auch in schwierigen Gelände bewegen.
 \end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{path/to/drive_unit_render.png}
-    \framebox[0.8\textwidth]{\rule{0pt}{5cm}PLATZHALTER: Bild des Antriebs V2}
+    \includegraphics[width=0.8\textwidth]{img/DriveUnitV2.png}
     \caption{CAD-Modell des Antriebs V2}
     \label{fig:drive_unit}
 \end{figure}
@@ -77,19 +76,19 @@ Der Antrieb wurde bisher in zwei Versionen entwickelt:
 \subsection{Elektronik}
 Das Herzstück der Elektronik ist eine eigene Platine (PCB) die in der Schule gefertigt wurde.
 \begin{itemize}
-    \item \textbf{Steuerung}: Verwendet wird ein ESP32-S3 Mikrocontroller. Er ist leistungsstark und hat bereits ein USB und ein Bluetooth Interface integriert.
+    \item \textbf{Steuerung}: Verwendet wird ein ESP32-S3 Mikrocontroller. Er ist leistungsstark und hat bereits ein USB und ein Bluetooth Interface zur Kommunikation mit jeglicher Peripherie integriert.
     \item \textbf{Sensoren}:
     \begin{itemize}
-        \item \textbf{Kompass}: Ein HMC5883L Sensor, damit der Roboter weiß, in welche Richtung er schaut.
-        \item \textbf{GPS}: Damit der Roboter seine Position bestimmen kann.
-        \item \textbf{Stromversorgung}: Die Batteriespannung wird überwacht.
+        \item \textbf{Kompass}: Ein HMC5883L Sensor ist per I2C mit der Steuerung verbunden um beim Navigieren die Ausrichtung des Roboters feststellen zu können.
+        \item \textbf{GPS}: Damit der Roboter seine Position bestimmen kann ist ein BN-880 GPS Modul in die Obere Abdeckplatte integriert welche über eine Serielle Schnittstelle mit der Steuerung kommuniziert.
+        \item \textbf{Stromversorgung}: Die Batteriespannung wird durch einen Spannungsteiler dessen Ausgang direkt mit einem ADC Eingang des ESP32 verbunden ist überwacht.
+        \item \textbf{Modulanschluss}: Der kommende Modulanschluss kann auch im weitesten Sinne als Sensor gesehen werden, über diesen Anschluss registrieren sich in Zukunft Module bei der Steuerung und haben durch diesen Anschluss Zugriff zur gleichen JSON API wie auch über die anderen Schnittstellen bereitgestellt wird.
     \end{itemize}
 \end{itemize}
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{Doc\img\Platinendesign.png}
-    \framebox[0.8\textwidth]{\rule{0pt}{5cm}PLATZHALTER: Layout der Platine}
+    \includegraphics[width=0.8\textwidth]{img/Platinendesign.png}
     \caption{Design der Roboter-Platine}
     \label{fig:pcb}
 \end{figure}
@@ -98,13 +97,7 @@ Das Herzstück der Elektronik ist eine eigene Platine (PCB) die in der Schule ge
 Die Software besteht aus zwei Teilen: Dem Programm auf dem Roboter (Firmware) und dem Programm auf dem Computer zur Steuerung.
 
 \subsection{Firmware (Auf dem Roboter)}
-Die Firmware steuert die Hardware direkt. Wichtige Funktionen sind:
-\begin{itemize}
-    \item \texttt{main.cpp}: Startet das System und lädt Einstellungen.
-    \item \texttt{serialManager}: Kümmert sich um die Kommunikation mit dem Computer.
-    \item \texttt{wpManager}: Speichert die Wegpunkte, die der Roboter abfahren soll.
-    \item \texttt{compass}: Liest die Kompass-Daten aus.
-\end{itemize}
+FreeRTOS bildet die Grundlage für die Firmware. Es gibt dauerhaft einen Task, der die Kommunikation mit externen Geräten bewerkstelligt. Wird ein Task gestartet, der Zugriff auf den Motor braucht, wird die PWM Schnittstelle für diesen Task reserviert und der Task handle für diesen Task Global gespeichert, um ihn im Notfall immer aus jeden anderen Task stoppen zu können. Ein Motor Task kann nur starten, wenn gerade kein anderer das Interface reserviert hat. Der Serial Manager Task ist dafür zuständig die JSON Apis bereitzustellen und bei Anfragen die benötigten Daten zu sammeln bzw. die angefragten Prozesse zu starten.
 
 \subsection{PlatformHelper}
 Um die Platform zu steuern und Daten auszutauschen gibt es sowohl eine Handy App als auch ein PC Programm, welches im Projekt Repo gefunden werden kann. Diese Anwendungen verbinden sich über die unten beschriebenen Schnittstellen mit der Steuerung.
@@ -131,8 +124,8 @@ Die Platform und jegliche Peripherie unterhalten sich über ein einfaches Textpr
 \textbf{Was noch fehlt:}
 \begin{itemize}
     \item Der finale Zusammenbau des neuen Antriebs.
-    \item Tests im Freien, um zu sehen, wie gut der Roboter alleine fährt.
-    \item Eine vollständige Dokumentation der Verkabelung.
+    \item Neue Tests im Freien, um zu sehen, wie gut der Roboter im aktuellen Zustand alleine fährt.
+    \item Erweiterung der Software und verbesserung der Stabilität
 \end{itemize}
 
 \end{document}
