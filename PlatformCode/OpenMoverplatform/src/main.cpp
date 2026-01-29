@@ -19,8 +19,7 @@ void setup(){
   MagYMin = preferences.getDouble("magYMin", 0.0);
   MagYMax = preferences.getDouble("magYMax", 0.0);
   preferences.end();
-  Serial.begin(115200);
-  Serial2.begin(GPSBaud);
+  vTaskDelay(10000); // time for the jtag probe to connect
   initCompass();
   motorSetup();
   xTaskCreatePinnedToCore(serialManager, "serialManager", 10000, NULL, 1, NULL, 1);

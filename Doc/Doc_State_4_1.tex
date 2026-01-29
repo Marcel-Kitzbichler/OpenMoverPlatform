@@ -1,0 +1,131 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{float}
+\usepackage[ngerman]{babel} % German language support
+
+% Seiteneinstellungen
+\geometry{
+    left=25mm,
+    right=25mm,
+    top=25mm,
+    bottom=25mm,
+}
+
+% Code-Darstellung
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegray},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{\textbf{OpenMoverPlatform} \\ \large Projektstatus-Dokumentation}
+\author{Marcel Kitzbichler}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Einleitung}
+Die OpenMoverPlatform ist ein mobiler Roboter, der selbstständig fahren oder ferngesteuert werden kann. Dieses Dokument beschreibt den aktuellen Stand der Mechanik, der Elektronik und der Software. Alle Designs und der Quellcode können im Projekt-Repository gefunden werden: \url{https://github.com/Marcel-Kitzbichler/OpenMoverPlatform}
+
+\section{Aufbau des Systems}
+
+\subsection{Mechanik}
+Das Gehäuse und die mechanischen Teile wurden mit SolidWorks konstruiert. Das Design ist modular aufgebaut. Der Modulanschluss befindet sich oben auf der Platform, dieser Anschluss ist sowohl für die Mechanische befestigung als auch für die elektrische Verbindung des Moduls mit der Platform zuständig.
+
+\subsubsection{Der Antrieb}
+Der Antrieb wurde bisher in zwei Versionen entwickelt:
+\begin{itemize}
+    \item \textbf{Version 1}: Ein erster Prototyp, um testen zu können ob ein komplett auf dem 3D-Drucker geferigtes Getriebe überhaupt machbar ist.
+    \item \textbf{Version 2 (Aktuell)}: Diese Version ist fortgeschrittener. Sie besitzt ein Getriebe bestehend aus mehreren 3D-gedruckten Zahnrädern und einen Kettenantrieb. Durch die hohe Übersetzung kann sich der Roboter auch in schwierigen Gelände bewegen.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/DriveUnitV2.png}
+    \caption{CAD-Modell des Antriebs V2}
+    \label{fig:drive_unit}
+\end{figure}
+
+\subsection{Elektronik}
+Das Herzstück der Elektronik ist eine eigene Platine (PCB) die in der Schule gefertigt wurde.
+\begin{itemize}
+    \item \textbf{Steuerung}: Verwendet wird ein ESP32-S3 Mikrocontroller. Er ist leistungsstark und hat bereits ein USB und ein Bluetooth Interface zur Kommunikation mit jeglicher Peripherie integriert.
+    \item \textbf{Sensoren}:
+    \begin{itemize}
+        \item \textbf{Kompass}: Ein HMC5883L Sensor ist per I2C mit der Steuerung verbunden um beim Navigieren die Ausrichtung des Roboters feststellen zu können.
+        \item \textbf{GPS}: Damit der Roboter seine Position bestimmen kann ist ein BN-880 GPS Modul in die Obere Abdeckplatte integriert welche über eine Serielle Schnittstelle mit der Steuerung kommuniziert.
+        \item \textbf{Stromversorgung}: Die Batteriespannung wird durch einen Spannungsteiler dessen Ausgang direkt mit einem ADC Eingang des ESP32 verbunden ist überwacht.
+        \item \textbf{Modulanschluss}: Der kommende Modulanschluss kann auch im weitesten Sinne als Sensor gesehen werden, über diesen Anschluss registrieren sich in Zukunft Module bei der Steuerung und haben durch diesen Anschluss Zugriff zur gleichen JSON API wie auch über die anderen Schnittstellen bereitgestellt wird.
+    \end{itemize}
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/Platinendesign.png}
+    \caption{Design der Roboter-Platine}
+    \label{fig:pcb}
+\end{figure}
+
+\section{Software}
+Die Software besteht aus zwei Teilen: Dem Programm auf dem Roboter (Firmware) und dem Programm auf dem Computer zur Steuerung.
+
+\subsection{Firmware (Auf dem Roboter)}
+FreeRTOS bildet die Grundlage für die Firmware. Es gibt dauerhaft einen Task, der die Kommunikation mit externen Geräten bewerkstelligt. Wird ein Task gestartet, der Zugriff auf den Motor braucht, wird die PWM Schnittstelle für diesen Task reserviert und der Task handle für diesen Task Global gespeichert, um ihn im Notfall immer aus jeden anderen Task stoppen zu können. Ein Motor Task kann nur starten, wenn gerade kein anderer das Interface reserviert hat. Der Serial Manager Task ist dafür zuständig die JSON Apis bereitzustellen und bei Anfragen die benötigten Daten zu sammeln bzw. die angefragten Prozesse zu starten.
+
+\subsection{PlatformHelper}
+Um die Platform zu steuern und Daten auszutauschen gibt es sowohl eine Handy App als auch ein PC Programm, welches im Projekt Repo gefunden werden kann. Diese Anwendungen verbinden sich über die unten beschriebenen Schnittstellen mit der Steuerung.
+
+\section{Kommunikation}
+Die Platform und jegliche Peripherie unterhalten sich über ein einfaches Textprotokoll (JSON). Es gibt verschiedene Befehle, die in der Zukunft noch erweitert und dann vollständig dokumentiert werden wird. Dieses JSON Interface kann auf gleiche Art und Weise über USB , eine Serielle Schnittstelle und über Bluetooth angesprochen werden. Aktuell sind diese Befehle implementiert:
+\begin{itemize}
+    \item \textbf{Intent 1}: Gespeicherte Wegpunkte abrufen.
+    \item \textbf{Intent 2}: Automatische Fahrt starten.
+    \item \textbf{Intent 4}: Motoren direkt steuern.
+    \item \textbf{Intent 5}: Neue Wegpunkte hochladen.
+    \item \textbf{Intent 6}: Status-Informationen abfragen.
+\end{itemize}
+
+\section{Aktueller Stand und Zukunft}
+\textbf{Was schon fertig ist:}
+\begin{itemize}
+    \item Das Design für den neuen Kettenantrieb (V2).
+    \item Der Entwurf der Platine.
+    \item Die grundlegende Software zum Fahren und Steuern.
+    \item Das PC-Programm zur Bedienung.
+\end{itemize}
+
+\textbf{Was noch fehlt:}
+\begin{itemize}
+    \item Der finale Zusammenbau des neuen Antriebs.
+    \item Neue Tests im Freien, um zu sehen, wie gut der Roboter im aktuellen Zustand alleine fährt.
+    \item Erweiterung der Software und verbesserung der Stabilität
+\end{itemize}
+
+\end{document}

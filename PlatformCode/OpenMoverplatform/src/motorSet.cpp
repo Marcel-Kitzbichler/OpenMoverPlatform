@@ -12,32 +12,30 @@ int setPointL = 0;
 int setPointR = 0;
 
 void motorSetup() {
-    ledcSetup(pwmChMotor1, pwmFreq, pwmResolution);
-    ledcSetup(pwmChMotor2, pwmFreq, pwmResolution);
-    ledcAttachPin(motor1Pin, pwmChMotor1);
-    ledcAttachPin(motor2Pin, pwmChMotor2);
-    ledcWrite(pwmChMotor1, pwmCenter / uSecPWM);
-    ledcWrite(pwmChMotor2, pwmCenter / uSecPWM);
+    ledcAttach(motor1Pin, pwmFreq, pwmResolution);
+    ledcAttach(motor2Pin, pwmFreq, pwmResolution);
+    ledcWrite(motor1Pin, pwmCenter / uSecPWM);
+    ledcWrite(motor2Pin, pwmCenter / uSecPWM);
 }
 
 void setMotorL(int speed) {
     if (speed > 0) {
-        ledcWrite(pwmChMotor1, (pwmCenter + (speed * biasL) + pwmDeadband) / uSecPWM);
+        ledcWrite(motor1Pin, (pwmCenter + (speed * biasL) + pwmDeadband) / uSecPWM);
     } else if (speed < 0) {
-        ledcWrite(pwmChMotor1, (pwmCenter + (speed * biasL) - pwmDeadband) / uSecPWM);
+        ledcWrite(motor1Pin, (pwmCenter + (speed * biasL) - pwmDeadband) / uSecPWM);
     } else {
-        ledcWrite(pwmChMotor1, pwmCenter / uSecPWM);
+        ledcWrite(motor1Pin, pwmCenter / uSecPWM);
     }
     setPointL = speed;
 }
 
 void setMotorR(int speed) {
     if (speed > 0) {
-        ledcWrite(pwmChMotor2, (pwmCenter + (speed * biasR) + pwmDeadband) / uSecPWM);
+        ledcWrite(motor2Pin, (pwmCenter + (speed * biasR) + pwmDeadband) / uSecPWM);
     } else if (speed < 0) {
-        ledcWrite(pwmChMotor2, (pwmCenter + (speed * biasR) - pwmDeadband) / uSecPWM);
+        ledcWrite(motor2Pin, (pwmCenter + (speed * biasR) - pwmDeadband) / uSecPWM);
     } else {
-        ledcWrite(pwmChMotor2, pwmCenter / uSecPWM);
+        ledcWrite(motor2Pin, pwmCenter / uSecPWM);
     }
     setPointR = speed;
 }
