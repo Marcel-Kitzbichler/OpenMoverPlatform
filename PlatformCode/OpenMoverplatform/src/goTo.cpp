@@ -1,6 +1,6 @@
 #include <Arduino.h> 
 #include "goTo.h"
-#include "MotorSet.h"
+#include "motorSet.h"
 #include "TinyGPSPlus.h"
 #include "endMotorTask.h"
 #include "compass.h"

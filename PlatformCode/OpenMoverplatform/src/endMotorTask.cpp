@@ -1,6 +1,6 @@
 #include <Arduino.h>	
 #include "endMotorTask.h"
-#include "MotorSet.h"
+#include "motorSet.h"
 
 extern TaskHandle_t motorControlHandle;
 extern bool motorHandled;
