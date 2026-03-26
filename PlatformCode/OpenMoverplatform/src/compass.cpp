@@ -1,4 +1,4 @@
-#include <arduino.h>
+#include <Arduino.h>
 #include "config.h"
 #include "compass.h"
 #include "endMotorTask.h"

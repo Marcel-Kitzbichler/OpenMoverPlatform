@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "config.h" 
 #include "serialManager.h"
-#include "MotorSet.h"
+#include "motorSet.h"
 #include "compass.h"
-#include "preferences.h"
+#include <Preferences.h>
 
 extern double MagXMin;
 extern double MagXMax;
